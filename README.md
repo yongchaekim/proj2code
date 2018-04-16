@@ -10,6 +10,15 @@
 * Exit Handler and Implementation.
 * Compilation & Testing.
 ---
+### Add a system call.
+---
+```=clike
+    int set_rotation(int degree); syscall 380
+    int rotlock_read(int degree, int range); syscall 381
+    int rotlock_write(int degree, int range); syscall 382
+    int rotunlock_read(int degree, int range); syscall 383
+    int rotunlock_write(int degree, int range); syscall 313
+```
 ### Types of list
 ---
 ```=clikestruct 
