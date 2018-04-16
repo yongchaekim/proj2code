@@ -21,6 +21,7 @@
 ```
 ### Types of list
 ---
+Our task struct, contains the task status and the list head to waitingwriter or waitingreader list.
 ```=clikestruct 
 r_{  
   struct task_struct *task;  
@@ -46,36 +47,40 @@ Spinlock_unlock_irqrestore(&(lock), flags);
 ```
 These provides a safe locking on entire shared sources, that only one task can access shared sources at the moment and basically Spin lock_lock saves the interrupted state before taking the spin lock and enables the interrupt when Spinlock_unlock. This simply solves concurrency issues.
 
-### Set_rotation
+### Setting rotation value
 ---
 A daemon that updates fake device rotation information, called rotd updates the rotation sequence of ```=clike  0, 30, 60 , ... 330, 0, ...``` in fixed frequency.The set_rotation system updates the rotation information in the kernel. The set_rotation allow the processes that are waiting to grab a lock on a range entered by the new rotation should be allowed to grab the lock (making sure readers and writers don't grab the lock at the same time). This is done by broadcasting(waking up) all the waiting readers and signalling one waiting writers waiting for a lock for each rotation value.
 
 ### Lock assigning policy
 ---
-
 Implement the synchronization primitives so that follow a prevention policy which avoids writer starvation. Assume that a writer wants to acquire a lock with a range R, and the current rotation degree is located in R. In such a case, the writer cannot grab the lock because another reader is holding a lock with a range R' which overlaps with R; the writer should wait for the reader to release its lock. Under such circumstances, other readers with ranges that overlap with R should not be allowed to grab locks even though the current degree is located in their target ranges, in order to prevent writer starvation. In short, "If a reader holds a lock and a writer wants to take the lock, no more readers can take the lock - they should wait" is a desired policy for preventing starvation.
 
 **Rotation Based Writers Lock**
+---
 * Writer first grabs a spinlock, then increases the waitingWriters count by 1.
 * Then writeShouldWait() checks if the degree and range is within the range of the rotation and checks whether there is activewriters or activereaders.
 * If there is activewriters or activereaders presented. If there is, then the current waitingwriters are put into the waiting writerslist and calls wait function.
 * Else waitingwriters are decreased, activewriters are increased, and then spinlock is unlocked.
----
+
 **Rotation Based Readers Lock**
+---
 * Reader first grabs a spinlock , then increases the waitingReaders count by 1.
 * Then readShouldWait() checks if the degree and range is within the range of the rotation and checks whether there is activewriters or activereaders.
 * If there is activewriters or waitingwriters presented. If there is then the current waitingreadersare put into the waiting readers list and calls Wait function.
 * Else waitingreaders are decreased, activereaders are increased then unlocks.
----
+
 **Rotation Based Writers UnLock**
+---
 * The activewriters first grabs a spinlock, then decreases the activewriters count by 1.
 * If there is still a waitingwriters then the function calls signal one waitingwriters currently to grab the next lock, else broadcast many waiting readers to grab the next lock.
 * Then release the spinlock.
----
+
 **Rotation Based Readers UnLock**
-* The activereaders first grabs a spinlock, then decreases the activereaders count by 1* If there is still a waitingwriters and activereaders then the function calls signal one waitingwriters currently to grab the next lock.* Then release the spinlock.
 ---
+* The activereaders first grabs a spinlock, then decreases the activereaders count by 1* If there is still a waitingwriters and activereaders then the function calls signal one waitingwriters currently to grab the next lock.* Then release the spinlock.
+
 ### Exit Handler
+---
 In kernel/exit.c, we added exit_rotlock() function to handle unreleased locks. The exit_rotlock() removes every locks, which the process has requested.
 
 The exit_rotlock() basically wakesup all the waitingwriter and waitingreader list, and deallocating by kfree.
