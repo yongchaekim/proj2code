@@ -77,3 +77,54 @@ Implement the synchronization primitives so that follow a prevention policy whic
 ---
 ### Exit Handler
 In kernel/exit.c, we added exit_rotlock() function to handle unreleased locks. The exit_rotlock() removes every locks, which the process has requested.
+
+### Compilation & Testing
+Building kernel.
+**On the terminal**
+```=clike
+> ./build --clean
+> ./build image.tar
+```
+**On the putty terminal**
+```=clike
+> thordown
+```
+To flash the image on the Artik10, after flashing the image file, log in and enable sdb
+**On the putty terminal**
+```=clike
+> direct_set_debug.sh --sdb-set
+```
+Then compile the selector.c and trial.c and send the binary executable file to the artik10 device
+**On the main terminal**
+```=clike
+> sdb root on
+> arm-linux-gnueabi-gcc -o select selector.c
+> arm-linux-gnueabi-gcc -o trial trial.c
+> sdb push select /root/select
+> sdb push trial /root/trial
+```
+Then we test our implementation on the terminal, but before that check that sdb root is enabled.
+**First we test we one selector**
+**On the main terminal**
+```=clike
+> sdb shell
+> cd root
+> ./rotd
+> select 1
+```
+**Second we test with one selector and one trial**
+Open two terminal
+**On one of the main terminal**
+```=clike
+> sdb shell
+> cd root
+> ./rotd
+> select 1
+```
+**On another terminal**
+```=clike
+> sdb shell
+> cd root
+> ./trial
+```
+**Third on multiple terminal test with n selector and n trial**
