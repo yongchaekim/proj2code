@@ -39,6 +39,7 @@ These provides a safe locking on entire shared sources, that only one task can a
 
 ### Set_rotation
 ---
+A daemon that updates fake device rotation information, called rotd updates the rotation sequence of ```=clike  0, 30, 60 , ... 330, 0, ...''' in fixed frequency
 ### Lock assigning policy
 ---
 **Rotation Based Writers Lock**
