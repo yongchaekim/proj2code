@@ -13,10 +13,10 @@
 ### Add a system call.
 ---
 ```=clike
-    int set_rotation(int degree); syscall 380
-    int rotlock_read(int degree, int range); syscall 381
-    int rotlock_write(int degree, int range); syscall 382
-    int rotunlock_read(int degree, int range); syscall 383
+    int set_rotation(int degree);               syscall 380
+    int rotlock_read(int degree, int range);    syscall 381
+    int rotlock_write(int degree, int range);   syscall 382
+    int rotunlock_read(int degree, int range);  syscall 383
     int rotunlock_write(int degree, int range); syscall 313
 ```
 ### Types of list
@@ -78,24 +78,27 @@ Implement the synchronization primitives so that follow a prevention policy whic
 ### Exit Handler
 In kernel/exit.c, we added exit_rotlock() function to handle unreleased locks. The exit_rotlock() removes every locks, which the process has requested.
 
+The exit_rotlock() basically wakesup all the waitingwriter and waitingreader list, and deallocating by kfree.
+
+Since the exit_rotlock() is always called, we hack into our kernel, added a count variable of the init_task.h. So when exit_rotlock() function is tested if current->count == 0, then the function simply returns. Inside the rotation lock function current->count is set to non zero value and in rotation unlock function current->count is set to 0.
 ### Compilation & Testing
 Building kernel.
-**On the terminal**
+On the terminal
 ```=clike
 > ./build --clean
 > ./build image.tar
 ```
-**On the putty terminal**
+On the putty terminal
 ```=clike
 > thordown
 ```
 To flash the image on the Artik10, after flashing the image file, log in and enable sdb
-**On the putty terminal**
+On the putty terminal
 ```=clike
 > direct_set_debug.sh --sdb-set
 ```
 Then compile the selector.c and trial.c and send the binary executable file to the artik10 device
-**On the main terminal**
+On the main terminal
 ```=clike
 > sdb root on
 > arm-linux-gnueabi-gcc -o select selector.c
@@ -104,24 +107,23 @@ Then compile the selector.c and trial.c and send the binary executable file to t
 > sdb push trial /root/trial
 ```
 Then we test our implementation on the terminal, but before that check that sdb root is enabled.
-**First we test we one selector**
-**On the main terminal**
+**Firstly one one terminal we test we one selector**
+On the main terminal
 ```=clike
 > sdb shell
 > cd root
 > ./rotd
 > select 1
 ```
-**Second we test with one selector and one trial**
-Open two terminal
-**On one of the main terminal**
+**Secondly on two terminal we test with one selector and one trial**
+On one of the main terminal
 ```=clike
 > sdb shell
 > cd root
 > ./rotd
 > select 1
 ```
-**On another terminal**
+On another terminal
 ```=clike
 > sdb shell
 > cd root
