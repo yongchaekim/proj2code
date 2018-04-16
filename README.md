@@ -2,7 +2,8 @@
 
 #### Team1: Gao Zhiyuan, Kim Yongchae, Tormod Aase, Dong Xin
 ---
-### Obejective of project* Add a system call.
+### Overview of project
+* Add a system call.
 * Types of list and Types of Locks in the Implementation.
 * Set_rotation Implementation.
 * Lock assigning policy and Implementation.
