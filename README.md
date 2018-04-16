@@ -39,7 +39,8 @@ These provides a safe locking on entire shared sources, that only one task can a
 
 ### Set_rotation
 ---
-A daemon that updates fake device rotation information, called rotd updates the rotation sequence of ```=clike  0, 30, 60 , ... 330, 0, ...''' in fixed frequency
+A daemon that updates fake device rotation information, called rotd updates the rotation sequence of ```=clike  0, 30, 60 , ... 330, 0, ...``` in fixed frequency.The set_rotation system updates the rotation information in the kernel. The set_rotation allow the processes that are waiting to grab a lock on a range entered by the new rotation should be allowed to grab the lock (making sure readers and writers don't grab the lock at the same time). This is done by broadcasting(waking up) all the waiting readers and signalling one waiting writers waiting for a lock for each rotation value.
+
 ### Lock assigning policy
 ---
 **Rotation Based Writers Lock**
