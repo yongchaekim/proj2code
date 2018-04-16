@@ -52,6 +52,9 @@ A daemon that updates fake device rotation information, called rotd updates the 
 
 ### Lock assigning policy
 ---
+
+Implement the synchronization primitives so that follow a prevention policy which avoids writer starvation. Assume that a writer wants to acquire a lock with a range R, and the current rotation degree is located in R. In such a case, the writer cannot grab the lock because another reader is holding a lock with a range R' which overlaps with R; the writer should wait for the reader to release its lock. Under such circumstances, other readers with ranges that overlap with R should not be allowed to grab locks even though the current degree is located in their target ranges, in order to prevent writer starvation. In short, "If a reader holds a lock and a writer wants to take the lock, no more readers can take the lock - they should wait" is a desired policy for preventing starvation.
+
 **Rotation Based Writers Lock**
 * Writer first grabs a spinlock, then increases the waitingWriters count by 1.
 * Then writeShouldWait() checks if the degree and range is within the range of the rotation and checks whether there is activewriters or activereaders.
